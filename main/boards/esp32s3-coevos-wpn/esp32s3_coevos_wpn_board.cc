@@ -92,12 +92,37 @@ private:
     }
 
     void InitializeButtons() {
-        boot_button_.OnClick([this]() {
-            auto& app = Application::GetInstance();
-            if (app.GetDeviceState() == kDeviceStateStarting && !WifiStation::GetInstance().IsConnected()) {
-                ResetWifiConfiguration();
+        // boot_button_.OnClick([this]() {
+        //     auto& app = Application::GetInstance();
+        //     if (app.GetDeviceState() == kDeviceStateStarting && !WifiStation::GetInstance().IsConnected()) {
+        //         ResetWifiConfiguration();
+        //     }
+        //     app.ToggleChatState();
+        // });
+        gpio_config_t bk_gpio_config = {
+            .pin_bit_mask = 1ULL << PWR_HOLD_BUTTON_GPIO,
+            .mode = GPIO_MODE_OUTPUT,
+            .pull_up_en = GPIO_PULLUP_ENABLE,
+            .pull_down_en = GPIO_PULLDOWN_DISABLE,
+            .intr_type = GPIO_INTR_DISABLE,
+        };
+        ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
+
+        static bool is_device_on = false; // 静态变量记录开关机状态
+
+        boot_button_.OnLongPress([this]() {
+            if (!is_device_on) {
+                // 当前状态是刚开机，检测长按次数
+                gpio_set_level(PWR_HOLD_BUTTON_GPIO, 1);
+                ESP_LOGI(TAG, "Device is starting, keeping GPIO 15 high to stay powered on.");
+                is_device_on = true; // 更新状态为开机
+                Enbl(); // 打开背光
+            } else {
+                // 当前状态是已经开机，设置 15 引脚低电平，自杀关机
+                gpio_set_level(PWR_HOLD_BUTTON_GPIO, 0);
+                ESP_LOGI(TAG, "Device is already on, setting GPIO 15 low to power off.");
+                is_device_on = false; // 更新状态为关机
             }
-            app.ToggleChatState();
         });
     }
 
@@ -154,11 +179,12 @@ public:
         ESP_LOGI(TAG, "Initializing esp32s3_coevos_wpn Board");
         InitializeI2c();
         I2cDetect();
-        Enbl();
+        // Enbl();
         InitializeSpi();
         InitializeButtons();
         InitializeSt7789Display(); 
         InitializeIot();
+        Enbl(); // 打开背光
     }
 
     virtual AudioCodec* GetAudioCodec() override {
