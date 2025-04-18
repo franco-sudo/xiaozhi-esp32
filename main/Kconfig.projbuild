@@ -112,6 +112,8 @@ choice BOARD_TYPE
         bool "虾哥 Mini C3"
     config BOARD_TYPE_ESP32S3_KORVO2_V3
         bool "ESP32S3_KORVO2_V3开发板"
+    config BOARD_TYPE_ESP32S3_COEVOS_WPN
+        bool "ESP32S3-科易为孔板导航仪"
     config BOARD_TYPE_ESP_SPARKBOT
         bool "ESP-SparkBot开发板"
     config BOARD_TYPE_ESP_SPOT_S3
@@ -228,6 +230,16 @@ choice DISPLAY_ESP32S3_KORVO2_V3
         bool "ILI9341, 分辨率240*320"
 endchoice
 
+choice DISPLAY_ESP32S3_COEVOS_WPN
+    depends on BOARD_TYPE_ESP32S3_COEVOS_WPN
+    prompt "ESP32S3_COEVOS_WPN LCD Type"
+    default LCD_ST7789_240X320_HXC
+    help
+        屏幕类型选择：目前只支持华夏彩屏
+    config LCD_ST7789_240X320_HXC
+        bool "ST7789, 分辨率240*320"
+endchoice
+
 config USE_WECHAT_MESSAGE_STYLE
     bool "使用微信聊天界面风格"
     default n
@@ -251,7 +263,7 @@ config USE_AUDIO_PROCESSOR
 config USE_REALTIME_CHAT
     bool "启用可语音打断的实时对话模式（需要 AEC 支持）"
     default n
-    depends on USE_AUDIO_PROCESSOR && (BOARD_TYPE_ESP_BOX_3 || BOARD_TYPE_ESP_BOX || BOARD_TYPE_ESP_BOX_LITE || BOARD_TYPE_LICHUANG_DEV || BOARD_TYPE_ESP32S3_KORVO2_V3)
+    depends on USE_AUDIO_PROCESSOR && (BOARD_TYPE_ESP_BOX_3 || BOARD_TYPE_ESP_BOX || BOARD_TYPE_ESP_BOX_LITE || BOARD_TYPE_LICHUANG_DEV || BOARD_TYPE_ESP32S3_KORVO2_V3 || BOARD_TYPE_ESP32S3_COEVOS_WPN)
     help
         需要 ESP32 S3 与 AEC 开启，因为性能不够，不建议和微信聊天界面风格同时开启
         
